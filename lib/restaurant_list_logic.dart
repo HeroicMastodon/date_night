@@ -44,8 +44,11 @@ class RestaurantListLogic {
     );
   }
 
-  Restaurant get myRandomPick {
+  Restaurant? get myRandomPick {
     final myPreferred = restaurantList.myPreferredRestaurants;
+
+    if(myPreferred.isEmpty) return null;
+
     final weighted = <Restaurant>[];
 
     for (var restaurant in myPreferred) {
@@ -60,8 +63,11 @@ class RestaurantListLogic {
     return pick;
   }
 
-  Restaurant get herRandomPick {
+  Restaurant? get herRandomPick {
     final herPreferred = restaurantList.herPreferredRestaurants;
+
+    if (herPreferred.isEmpty) return null;
+
     final weighted = <Restaurant>[];
 
     for (var restaurant in herPreferred) {

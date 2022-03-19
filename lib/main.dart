@@ -87,6 +87,7 @@ class HerPickButton extends StatelessWidget {
     return TextButton(
       onPressed: () {
         final pick = logic.herRandomPick;
+
         showDialog(
             context: context,
             builder: (context) => PickDialog(pick));
@@ -352,7 +353,7 @@ class RestaurantDialog extends HookWidget {
 class PickDialog extends HookWidget {
   const PickDialog(this.restaurant, {Key? key}) : super(key: key);
 
-  final Restaurant restaurant;
+  final Restaurant? restaurant;
 
   @override
   Widget build(BuildContext context) {
@@ -360,7 +361,7 @@ class PickDialog extends HookWidget {
       child: Padding(
         padding: const EdgeInsets.all(32.0),
         child: Text(
-          "${restaurant.name}!!!",
+          "${restaurant?.name ?? "They have no preference"}!!!",
           style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
         ),
       ),

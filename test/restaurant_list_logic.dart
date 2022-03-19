@@ -59,7 +59,7 @@ void main() {
       }
 
       final myPick = instance.myRandomPick;
-      expect(myPick.myPreference, greaterThan(0));
+      expect(myPick?.myPreference, greaterThan(0));
       expect(restaurants.contains(myPick), true);
     },
   );
@@ -78,7 +78,7 @@ void main() {
       }
 
       final herPick = instance.herRandomPick;
-      expect(herPick.herPreference, greaterThan(0));
+      expect(herPick?.herPreference, greaterThan(0));
       expect(restaurants.contains(herPick), true);
     },
   );
