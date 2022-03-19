@@ -1,7 +1,13 @@
+import 'dart:developer';
+import 'dart:math';
+
+import 'package:date_night/commands/restaurant_command.dart';
 import 'package:date_night/model/restaurant.dart';
+import 'package:date_night/restaurant_list_logic.dart';
 import 'package:date_night/restaurant_list_notifier.dart';
 import 'package:date_night/setup.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get_it_hooks/get_it_hooks.dart';
 
 void main() async {
@@ -9,113 +15,355 @@ void main() async {
   runApp(const App());
 }
 
-class App extends StatelessWidget {
+class App extends HookWidget {
   const App({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    var test = useWatch<RestaurantListNotifier, List<Restaurant>>();
+    var logic = useGet<RestaurantListLogic>();
+    var notifier = useListenable(logic.restaurantList);
+
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.green,
+        ),
+        home: Scaffold(
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.centerDocked,
+          appBar: AppBar(
+            title: const Text('Date Night'),
+          ),
+          bottomNavigationBar: BottomAppBar(
+            shape: const CircularNotchedRectangle(),
+            color: Colors.green,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  MyPickButton(logic: logic),
+                  HerPickButton(logic: logic),
+                ],
+              ),
+            ),
+          ),
+          body: Center(
+            child: ListView.builder(
+              itemCount: notifier.count,
+              itemBuilder: (context, index) {
+                final restaurant = notifier[index];
+
+                return RestaurantWidget(restaurant: restaurant);
+              },
+            ),
+            // child: GridView.builder(
+            //   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            //     maxCrossAxisExtent: 160,
+            //   ),
+            //   padding: const EdgeInsets.all(16),
+            //   itemCount: notifier.count,
+            //   itemBuilder: (context, index) {
+            //     final restaurant = notifier[index];
+            //     return RestaurantWidget(restaurant: restaurant);
+            //   },
+            // ),
+          ),
+          floatingActionButton: NewRestaurantButton(logic: logic),
+        ));
+  }
+}
+
+class HerPickButton extends StatelessWidget {
+  const HerPickButton({
+    Key? key,
+    required this.logic,
+  }) : super(key: key);
+
+  final RestaurantListLogic logic;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: () {
+        final pick = logic.herRandomPick;
+        showDialog(
+            context: context,
+            builder: (context) => PickDialog(pick));
+      },
+      child: const Padding(
+        padding: EdgeInsets.all(8.0),
+        child: Text(
+          "Her Pick",
+          style: TextStyle(color: Colors.white, fontSize: 24),
+        ),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+class MyPickButton extends StatelessWidget {
+  const MyPickButton({
+    Key? key,
+    required this.logic,
+  }) : super(key: key);
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  final RestaurantListLogic logic;
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+    return TextButton(
+      onPressed: () {
+        final pick = logic.myRandomPick;
+        showDialog(
+            context: context,
+            builder: (context) => PickDialog(pick));
+      },
+      child: const Padding(
+        padding: EdgeInsets.all(8.0),
+        child: Text(
+          "My Pick",
+          style: TextStyle(color: Colors.white, fontSize: 24),
+        ),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+    );
+  }
+}
+
+class NewRestaurantButton extends StatelessWidget {
+  const NewRestaurantButton({
+    Key? key,
+    required this.logic,
+  }) : super(key: key);
+
+  final RestaurantListLogic logic;
+
+  @override
+  Widget build(BuildContext context) {
+    return FloatingActionButton(
+      onPressed: () async {
+        final newRestaurant = await showDialog(
+          context: context,
+          builder: (context) => RestaurantDialog(
+            restaurant: Restaurant("", 0, 0),
+          ),
+        );
+        if (newRestaurant == null) return;
+        logic.takeAction(RestaurantCommand.add(newRestaurant));
+      },
+      tooltip: 'Add Restaurant',
+      child: const Icon(Icons.add),
+    );
+  }
+}
+
+class RestaurantWidget extends HookWidget {
+  const RestaurantWidget({
+    Key? key,
+    required this.restaurant,
+  }) : super(key: key);
+
+  final Restaurant restaurant;
+
+  @override
+  Widget build(BuildContext context) {
+    final logic = useGet<RestaurantListLogic>();
+    const nameStyle = TextStyle(fontSize: 24, fontWeight: FontWeight.bold);
+    const labelStyle = TextStyle(fontSize: 16);
+    const preferenceStyle =
+        TextStyle(fontSize: 16, fontWeight: FontWeight.bold);
+
+    return InkWell(
+      onTap: () async {
+        final update = await showDialog(
+          context: context,
+          builder: (context) {
+            return RestaurantDialog(restaurant: restaurant);
+          },
+        );
+        if (update == null) return;
+
+        logic.takeAction(RestaurantCommand.replace(restaurant, update));
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                Expanded(
+                  child: Text(
+                    restaurant.name,
+                    style: nameStyle,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () =>
+                      logic.takeAction(RestaurantCommand.remove(restaurant)),
+                  icon: const Icon(Icons.delete),
+                )
+              ],
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: Row(
+                    children: [
+                      const Text("My Preference: ", style: labelStyle),
+                      Text(
+                        restaurant.myPreference.toString(),
+                        style: preferenceStyle,
+                      ),
+                    ],
+                  ),
+                ),
+                // const Spacer(),
+                Row(
+                  children: [
+                    const Text("Her Preference: ", style: labelStyle),
+                    Text(
+                      restaurant.herPreference.toString(),
+                      style: preferenceStyle,
+                    ),
+                  ],
+                ),
+              ],
+            )
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+}
+
+class RestaurantDialog extends HookWidget {
+  const RestaurantDialog({Key? key, required this.restaurant})
+      : super(key: key);
+
+  final Restaurant restaurant;
+
+  @override
+  Widget build(BuildContext context) {
+    final state = useState(restaurant);
+
+    return Dialog(
+      key: key,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: SizedBox(
+          width: 320,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 16.0, horizontal: 8.0),
+                      child: TextFormField(
+                        decoration: const InputDecoration(label: Text("Name")),
+                        onChanged: (value) {
+                          state.value = state.value.copyWith(name: value);
+                        },
+                        initialValue: state.value.name,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    flex: 1,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: TextFormField(
+                        decoration:
+                            const InputDecoration(label: Text("My Preference")),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        initialValue: state.value.myPreference.toString(),
+                        onChanged: (value) {
+                          if (value.isEmpty) return;
+                          var preference = int.parse(value);
+                          if (preference < 0 || preference > 10) return;
+                          state.value =
+                              state.value.copyWith(myPreference: preference);
+                        },
+                      ),
+                    ),
+                  ),
+                  Flexible(
+                    flex: 1,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: TextFormField(
+                        decoration: const InputDecoration(
+                            label: Text("Her Preference")),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        initialValue: state.value.herPreference.toString(),
+                        onChanged: (value) {
+                          if (value.isEmpty) return;
+                          var preference = int.parse(value);
+                          if (preference < 0 || preference > 10) return;
+
+                          state.value =
+                              state.value.copyWith(herPreference: preference);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text("cancel")),
+                    ElevatedButton(
+                        onPressed: () => Navigator.pop(context, state.value),
+                        child: const Text("Save")),
+                  ],
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class PickDialog extends HookWidget {
+  const PickDialog(this.restaurant, {Key? key}) : super(key: key);
+
+  final Restaurant restaurant;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Text(
+          "${restaurant.name}!!!",
+          style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
+        ),
+      ),
     );
   }
 }

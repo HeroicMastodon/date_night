@@ -3,7 +3,7 @@ import 'package:date_night/restaurant_repository.dart';
 import 'package:flutter/cupertino.dart';
 
 class RestaurantListNotifier extends ValueNotifier<List<Restaurant>> {
-  RestaurantRepository _repository;
+  final RestaurantRepository _repository;
 
   RestaurantListNotifier(List<Restaurant> value, this._repository) : super(value) {
     this.value = _initializeList(value);
@@ -80,7 +80,7 @@ class RestaurantListNotifier extends ValueNotifier<List<Restaurant>> {
     return value.elementAt(index);
   }
 
-  num get count => value.length;
+  int get count => value.length;
 
   List<Restaurant> get myPreferredRestaurants {
     return value

@@ -10,6 +10,6 @@ final services = GetIt.I;
 setup() async {
   final sharedPrefs = await SharedPreferences.getInstance();
   services.registerSingleton<RestaurantRepository>(RestaurantSharedPrefRepository(sharedPrefs));
-  services.registerSingleton(RestaurantListNotifier.initialize(services.get<RestaurantRepository>()));
+  services.registerSingleton(await RestaurantListNotifier.initialize(services.get<RestaurantRepository>()));
   services.registerSingleton(RestaurantListLogic(services.get<RestaurantListNotifier>()));
 }

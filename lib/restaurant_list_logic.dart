@@ -46,14 +46,33 @@ class RestaurantListLogic {
 
   Restaurant get myRandomPick {
     final myPreferred = restaurantList.myPreferredRestaurants;
-    final pick = _randomPick(myPreferred);
+    final weighted = <Restaurant>[];
 
+    for (var restaurant in myPreferred) {
+      for(var i = 0; i < restaurant.myPreference; i++) {
+        weighted.add(restaurant);
+      }
+    }
+
+    final pick = _randomPick(weighted);
+
+    print(weighted.length);
     return pick;
   }
 
   Restaurant get herRandomPick {
     final herPreferred = restaurantList.herPreferredRestaurants;
-    final pick = _randomPick(herPreferred);
+    final weighted = <Restaurant>[];
+
+    for (var restaurant in herPreferred) {
+      for(var i = 0; i < restaurant.herPreference; i++) {
+        weighted.add(restaurant);
+      }
+    }
+
+    print(weighted.length);
+
+    final pick = _randomPick(weighted);
 
     return pick;
   }
