@@ -8,9 +8,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 final services = GetIt.I;
 
 setup() async {
-  services.registerSingleton(RestaurantListLogic());
-  services.registerSingleton(RestaurantListNotifier.initialize());
-
   final sharedPrefs = await SharedPreferences.getInstance();
   services.registerSingleton<RestaurantRepository>(RestaurantSharedPrefRepository(sharedPrefs));
+  services.registerSingleton(RestaurantListNotifier.initialize(services.get<RestaurantRepository>()));
+  services.registerSingleton(RestaurantListLogic(services.get<RestaurantListNotifier>()));
 }

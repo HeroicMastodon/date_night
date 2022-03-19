@@ -2,6 +2,12 @@ import 'package:date_night/model/restaurant.dart';
 import 'package:date_night/restaurant_list_notifier.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'mocks/mock_restaurant_repository.dart';
+
+import 'mocks/mock_restaurant_repository.dart';
+
+import 'mocks/mock_restaurant_repository.dart';
+
 void main() {
   test('only uniquely name restaurants will be included during construction',
       () {
@@ -10,14 +16,14 @@ void main() {
       restaurantModel,
       Restaurant("name", 1, 1),
       Restaurant("name", 2, 2),
-    ]);
+    ], MockRestaurantRepository());
 
     expect(notifier.count, 1);
     expect(notifier[0], restaurantModel);
   });
 
   test('uniquely named restaurants will be added to the notifier', () {
-    final notifier = RestaurantListNotifier([]);
+    final notifier = RestaurantListNotifier([], MockRestaurantRepository());
     final restaurantModel = Restaurant("one", 0, 0);
 
     notifier.add(restaurantModel);
@@ -46,7 +52,7 @@ void main() {
     var restaurantModel = Restaurant("one", 1, 1);
     var restaurantModel2 = Restaurant("two", 1, 1);
     final notifier =
-        RestaurantListNotifier([restaurantModel, restaurantModel2]);
+        RestaurantListNotifier([restaurantModel, restaurantModel2], MockRestaurantRepository());
 
     notifier.remove(restaurantModel2);
     expect(notifier.count, 1);
@@ -69,7 +75,7 @@ void main() {
     var restaurantModel = Restaurant("one", 1, 1);
     var restaurantModel2 = Restaurant("two", 1, 1);
     final notifier =
-        RestaurantListNotifier([restaurantModel, restaurantModel2]);
+        RestaurantListNotifier([restaurantModel, restaurantModel2], MockRestaurantRepository());
 
     var modelWithNewName = restaurantModel.copyWith(name: "hi");
     notifier.replace(restaurantModel, modelWithNewName);
@@ -87,7 +93,7 @@ void main() {
   });
 
   test('modifying the notifier will notify listeners', () {
-    final notifier = RestaurantListNotifier([]);
+    final notifier = RestaurantListNotifier([], MockRestaurantRepository());
 
     var callCount = 0;
     var expectedCallCount = 0;
@@ -135,7 +141,7 @@ void main() {
   test(
     'my preferred restaurants will only include items from the list with my preference > 0.',
     () {
-      final notifier = RestaurantListNotifier([]);
+      final notifier = RestaurantListNotifier([], MockRestaurantRepository());
       final restaurants = [
         Restaurant("panda", 1, 1),
         Restaurant("mc donald's", 1, 0),
@@ -156,7 +162,7 @@ void main() {
   test(
     'her preferred restaurants will only include items from the list with herPreference > 0.',
     () {
-      final notifier = RestaurantListNotifier([]);
+      final notifier = RestaurantListNotifier([], MockRestaurantRepository());
       final restaurants = [
         Restaurant("panda", 1, 1),
         Restaurant("mc donald's", 1, 0),

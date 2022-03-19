@@ -1,8 +1,15 @@
 import 'package:date_night/model/restaurant.dart';
+import 'package:date_night/restaurant_repository.dart';
 import 'package:flutter/cupertino.dart';
 
 class RestaurantListNotifier extends ValueNotifier<List<Restaurant>> {
-  RestaurantListNotifier(List<Restaurant> value) : super(value) {
+  RestaurantRepository _repository;
+
+  RestaurantListNotifier(List<Restaurant> value, this._repository) : super(value) {
+    this.value = _initializeList(value);
+  }
+
+  List<Restaurant> _initializeList(List<Restaurant> value) {
     final map = <String, bool>{};
     final list = <Restaurant>[];
     for (var element in value) {
@@ -12,12 +19,12 @@ class RestaurantListNotifier extends ValueNotifier<List<Restaurant>> {
         continue;
       }
     }
-
-    this.value = list;
+    return list;
   }
 
-  static RestaurantListNotifier initialize() {
-    return RestaurantListNotifier([]);
+  static Future<RestaurantListNotifier> initialize(RestaurantRepository repository) async {
+    final value = await repository.getAll();
+    return RestaurantListNotifier(value, repository);
   }
 
   void add(Restaurant model) {

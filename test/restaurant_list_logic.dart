@@ -1,21 +1,24 @@
 import 'package:date_night/commands/restaurant_command.dart';
 import 'package:date_night/model/restaurant.dart';
 import 'package:date_night/restaurant_list_logic.dart';
+import 'package:date_night/restaurant_list_notifier.dart';
 import 'package:test/test.dart';
+
+import 'mocks/mock_restaurant_repository.dart';
 
 void main() {
   test(
     'a new instance will have an empty restaurant list and an empty undo stack',
-    () {
-      final instance = RestaurantListLogic();
+    () async {
+      final instance = await initialize();
       expect(instance.restaurantList.count, 0);
       expect(instance.undoStack.length, 0);
     },
   );
   test(
     'valid commands will update the restaurant list and be added to the undo stack',
-    () {
-      final instance = RestaurantListLogic();
+    () async {
+      final instance = await initialize();
       final restaurant = Restaurant("panda", 1, 0);
       final add = RestaurantCommand.add(restaurant);
 
@@ -43,8 +46,8 @@ void main() {
   );
   test(
     'getting my random pick will only return a restaurant with my preference from the restaurant list',
-    () {
-      final instance = RestaurantListLogic();
+    () async {
+      final instance = await initialize();
       final restaurants = [
         Restaurant("panda", 1, 1),
         Restaurant("mcdonalds", 1, 0),
@@ -62,8 +65,8 @@ void main() {
   );
   test(
     'getting her random pick will only return a restaurant with her preference from the restaurant list',
-    () {
-      final instance = RestaurantListLogic();
+    () async {
+      final instance = await initialize();
       final restaurants = [
         Restaurant("panda", 1, 1),
         Restaurant("mcdonalds", 1, 0),
@@ -79,4 +82,9 @@ void main() {
       expect(restaurants.contains(herPick), true);
     },
   );
+}
+
+Future<RestaurantListLogic> initialize() async {
+  final notifier = await RestaurantListNotifier.initialize(MockRestaurantRepository());
+  return RestaurantListLogic(notifier);
 }

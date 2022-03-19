@@ -7,7 +7,8 @@ import 'package:date_night/model/restaurant.dart';
 import 'helpers/get_it_helper.dart';
 
 class RestaurantListLogic {
-  final restaurantList = RestaurantListNotifier([]);
+  RestaurantListLogic(this.restaurantList);
+  final RestaurantListNotifier restaurantList;
   final undoStack = StackedSet<RestaurantCommand>();
 
   void takeAction(RestaurantCommand command) {
