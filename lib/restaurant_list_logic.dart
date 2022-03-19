@@ -10,8 +10,27 @@ class RestaurantListLogic {
   RestaurantListLogic(this.restaurantList);
   final RestaurantListNotifier restaurantList;
   final undoStack = StackedSet<RestaurantCommand>();
+  final redoStack = StackedSet<RestaurantCommand>();
 
   void takeAction(RestaurantCommand command) {
+    _takeAction(command);
+    undoStack.add(command);
+    redoStack.clear();
+  }
+
+  void undo() {
+    final command = undoStack.top();
+    _takeAction(command);
+    undoStack.pop();
+  }
+
+  void redo() {
+    final command = redoStack.top();
+    _takeAction(command);
+    redoStack.pop();
+  }
+
+  void _takeAction(RestaurantCommand command) {
     command.when(
       add: (restaurant) {
         restaurantList.add(restaurant);
@@ -23,8 +42,6 @@ class RestaurantListLogic {
         restaurantList.replace(old, updated);
       },
     );
-
-    undoStack.add(command);
   }
 
   Restaurant get myRandomPick {

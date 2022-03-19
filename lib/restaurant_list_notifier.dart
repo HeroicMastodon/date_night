@@ -35,6 +35,7 @@ class RestaurantListNotifier extends ValueNotifier<List<Restaurant>> {
     }
 
     value = [...value, model];
+    _repository.add(model);
   }
 
   void remove(Restaurant model) {
@@ -48,6 +49,7 @@ class RestaurantListNotifier extends ValueNotifier<List<Restaurant>> {
     }
 
     value = newValue;
+    _repository.remove(model);
   }
 
   void replace(Restaurant oldModel, Restaurant newModel) {
@@ -67,6 +69,7 @@ class RestaurantListNotifier extends ValueNotifier<List<Restaurant>> {
 
     value[index] = newModel;
     value = [...value];
+    _repository.replace(oldModel, newModel);
   }
 
   void update(List<Restaurant> model) {

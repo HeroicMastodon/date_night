@@ -25,6 +25,10 @@ class StackedSet<Type> implements Iterable<Type> {
     return _value.elementAt(index);
   }
 
+  void clear() {
+    _value.clear();
+  }
+
   @override
   bool any(bool Function(Type element) test) {
     return _value.any(test);
