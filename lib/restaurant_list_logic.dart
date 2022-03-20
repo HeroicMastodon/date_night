@@ -52,7 +52,7 @@ class RestaurantListLogic {
     final weighted = <Restaurant>[];
 
     for (var restaurant in myPreferred) {
-      for(var i = 0; i < restaurant.myPreference; i++) {
+      for(var i = 0; i < restaurant.myPreference.weight; i++) {
         weighted.add(restaurant);
       }
     }
@@ -71,7 +71,7 @@ class RestaurantListLogic {
     final weighted = <Restaurant>[];
 
     for (var restaurant in herPreferred) {
-      for(var i = 0; i < restaurant.herPreference; i++) {
+      for(var i = 0; i < restaurant.herPreference.weight; i++) {
         weighted.add(restaurant);
       }
     }

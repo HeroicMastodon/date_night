@@ -1,3 +1,4 @@
+import 'package:date_night/model/preference.dart';
 import 'package:date_night/model/restaurant.dart';
 import 'package:date_night/restaurant_repository.dart';
 
@@ -13,7 +14,7 @@ class MockRestaurantRepository implements RestaurantRepository {
 
   @override
   Future<Restaurant> getByName(String name) async {
-    return Restaurant(name, 0, 0);
+    return Restaurant(name, Preference.none(), Preference.none());
   }
 
   @override

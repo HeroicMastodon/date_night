@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:math';
 
 import 'package:date_night/commands/restaurant_command.dart';
+import 'package:date_night/model/preference.dart';
 import 'package:date_night/model/restaurant.dart';
 import 'package:date_night/restaurant_list_logic.dart';
 import 'package:date_night/restaurant_list_notifier.dart';
@@ -10,12 +11,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get_it_hooks/get_it_hooks.dart';
 
+MaterialColor createMaterialColor(Color color) {
+  List strengths = <double>[.05];
+  Map<int, Color> swatch = {};
+  final int r = color.red, g = color.green, b = color.blue;
+
+  for (int i = 1; i < 10; i++) {
+    strengths.add(0.1 * i);
+  }
+  for (var strength in strengths) {
+    final double ds = 0.5 - strength;
+    swatch[(strength * 1000).round()] = Color.fromRGBO(
+      r + ((ds < 0 ? r : (255 - r)) * ds).round(),
+      g + ((ds < 0 ? g : (255 - g)) * ds).round(),
+      b + ((ds < 0 ? b : (255 - b)) * ds).round(),
+      1,
+    );
+  }
+  return MaterialColor(color.value, swatch);
+}
 void main() async {
   await setup();
   runApp(const App());
 }
 
 class App extends HookWidget {
+
   const App({Key? key}) : super(key: key);
 
   @override
@@ -23,11 +44,10 @@ class App extends HookWidget {
     var logic = useGet<RestaurantListLogic>();
     var notifier = useListenable(logic.restaurantList);
 
+    var primarySwatch = createMaterialColor(Color.fromRGBO(41, 216, 111, 1));
     return MaterialApp(
         title: 'Flutter Demo',
-        theme: ThemeData(
-          primarySwatch: Colors.green,
-        ),
+        theme: ThemeData(primarySwatch: primarySwatch),
         home: Scaffold(
           floatingActionButtonLocation:
               FloatingActionButtonLocation.centerDocked,
@@ -36,7 +56,7 @@ class App extends HookWidget {
           ),
           bottomNavigationBar: BottomAppBar(
             shape: const CircularNotchedRectangle(),
-            color: Colors.green,
+            color: primarySwatch,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0),
               child: Row(
@@ -88,15 +108,13 @@ class HerPickButton extends StatelessWidget {
       onPressed: () {
         final pick = logic.herRandomPick;
 
-        showDialog(
-            context: context,
-            builder: (context) => PickDialog(pick));
+        showDialog(context: context, builder: (context) => PickDialog(pick));
       },
       child: const Padding(
         padding: EdgeInsets.all(8.0),
         child: Text(
           "Her Pick",
-          style: TextStyle(color: Colors.white, fontSize: 24),
+          style: TextStyle(color: Colors.black, fontSize: 24),
         ),
       ),
     );
@@ -116,15 +134,13 @@ class MyPickButton extends StatelessWidget {
     return TextButton(
       onPressed: () {
         final pick = logic.myRandomPick;
-        showDialog(
-            context: context,
-            builder: (context) => PickDialog(pick));
+        showDialog(context: context, builder: (context) => PickDialog(pick));
       },
       child: const Padding(
         padding: EdgeInsets.all(8.0),
         child: Text(
           "My Pick",
-          style: TextStyle(color: Colors.white, fontSize: 24),
+          style: TextStyle(color: Colors.black, fontSize: 24),
         ),
       ),
     );
@@ -146,7 +162,7 @@ class NewRestaurantButton extends StatelessWidget {
         final newRestaurant = await showDialog(
           context: context,
           builder: (context) => RestaurantDialog(
-            restaurant: Restaurant("", 0, 0),
+            restaurant: Restaurant("", Preference.none(), Preference.none()),
           ),
         );
         if (newRestaurant == null) return;
@@ -215,7 +231,7 @@ class RestaurantWidget extends HookWidget {
                     children: [
                       const Text("My Preference: ", style: labelStyle),
                       Text(
-                        restaurant.myPreference.toString(),
+                        restaurant.myPreference.label,
                         style: preferenceStyle,
                       ),
                     ],
@@ -226,7 +242,7 @@ class RestaurantWidget extends HookWidget {
                   children: [
                     const Text("Her Preference: ", style: labelStyle),
                     Text(
-                      restaurant.herPreference.toString(),
+                      restaurant.herPreference.label,
                       style: preferenceStyle,
                     ),
                   ],
@@ -284,20 +300,14 @@ class RestaurantDialog extends HookWidget {
                     flex: 1,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                      child: TextFormField(
-                        decoration:
-                            const InputDecoration(label: Text("My Preference")),
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                        initialValue: state.value.myPreference.toString(),
+                      child: PreferenceDropdown(
+                        label: "My Preference",
+                        defaultValue: state.value.myPreference,
                         onChanged: (value) {
-                          if (value.isEmpty) return;
-                          var preference = int.parse(value);
-                          if (preference < 0 || preference > 10) return;
+                          if (value == null) return;
+
                           state.value =
-                              state.value.copyWith(myPreference: preference);
+                              state.value.copyWith(myPreference: value);
                         },
                       ),
                     ),
@@ -306,21 +316,12 @@ class RestaurantDialog extends HookWidget {
                     flex: 1,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: TextFormField(
-                        decoration: const InputDecoration(
-                            label: Text("Her Preference")),
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                        initialValue: state.value.herPreference.toString(),
+                      child: PreferenceDropdown(
+                        label: "Her Preference",
+                        defaultValue: state.value.herPreference,
                         onChanged: (value) {
-                          if (value.isEmpty) return;
-                          var preference = int.parse(value);
-                          if (preference < 0 || preference > 10) return;
-
-                          state.value =
-                              state.value.copyWith(herPreference: preference);
+                          if (value == null) return;
+                          state.value = state.value.copyWith(herPreference: value);
                         },
                       ),
                     ),
@@ -346,6 +347,46 @@ class RestaurantDialog extends HookWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class PreferenceDropdown extends StatelessWidget {
+  const PreferenceDropdown({
+    Key? key,
+    required this.onChanged,
+    required this.label,
+    required this.defaultValue,
+  }) : super(key: key);
+
+  final void Function(Preference? value) onChanged;
+  final String label;
+  final Preference defaultValue;
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonFormField<Preference>(
+      value: defaultValue,
+      decoration: InputDecoration(label: Text(label)),
+      items: [
+        DropdownMenuItem(
+          child: Text(Preference.none().label),
+          value: Preference.none(),
+        ),
+        DropdownMenuItem(
+          child: Text(Preference.like().label),
+          value: Preference.like(),
+        ),
+        DropdownMenuItem(
+          child: Text(Preference.love().label),
+          value: Preference.love(),
+        ),
+        DropdownMenuItem(
+          child: Text(Preference.favorite().label),
+          value: Preference.favorite(),
+        ),
+      ],
+      onChanged: onChanged,
     );
   }
 }

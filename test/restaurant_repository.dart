@@ -1,5 +1,8 @@
 import 'dart:convert';
 
+import 'package:date_night/model/preference.dart';
+import 'package:date_night/model/preference.dart';
+import 'package:date_night/model/preference.dart';
 import 'package:date_night/model/restaurant.dart';
 import 'package:date_night/restaurant_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,7 +20,7 @@ void main() {
   test('a restaurant will be added to shared preferences', () async {
     final prefs = await SharedPreferences.getInstance();
     final repo = RestaurantSharedPrefRepository(prefs);
-    final restaurant = Restaurant("hi", 0, 1);
+    final restaurant = Restaurant("hi", Preference.none(), Preference.like());
 
     await repo.add(restaurant);
     expect(prefs.containsKey(restaurant.name), true);
@@ -27,7 +30,7 @@ void main() {
   test('a restaurant will be removed from shared prefs', () async {
     final prefs = await SharedPreferences.getInstance();
     final repo = RestaurantSharedPrefRepository(prefs);
-    final restaurant = Restaurant("hi", 0, 1);
+    final restaurant = Restaurant("hi", Preference.none(), Preference.like());
 
     repo.add(restaurant);
     repo.remove(restaurant);
@@ -37,9 +40,9 @@ void main() {
   test('a restaurant will be replaced in shared prefs', () async {
     final prefs = await SharedPreferences.getInstance();
     final repo = RestaurantSharedPrefRepository(prefs);
-    final restaurant = Restaurant("hi", 0, 1);
+    final restaurant = Restaurant("hi", Preference.none(), Preference.like());
     final newName = restaurant.copyWith(name: "hello");
-    final newPreference = newName.copyWith(myPreference: 100);
+    final newPreference = newName.copyWith(myPreference: Preference.favorite());
 
     repo.add(restaurant);
     repo.replace(restaurant, newName);
@@ -57,10 +60,10 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     final repo = RestaurantSharedPrefRepository(prefs);
     final restaurants = <Restaurant>[
-      Restaurant("hi", 1, 2),
-      Restaurant("hello", 1, 2),
-      Restaurant("name", 1, 2),
-      Restaurant("panda", 1, 2),
+      Restaurant("hi", Preference.like(), Preference.love()),
+      Restaurant("hello", Preference.like(), Preference.love()),
+      Restaurant("name", Preference.like(), Preference.love()),
+      Restaurant("panda", Preference.like(), Preference.love()),
     ];
 
     for (var restaurant in restaurants) {

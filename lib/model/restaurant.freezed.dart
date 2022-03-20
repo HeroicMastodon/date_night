@@ -21,7 +21,8 @@ Restaurant _$RestaurantFromJson(Map<String, dynamic> json) {
 class _$RestaurantTearOff {
   const _$RestaurantTearOff();
 
-  _Restaurant call(String name, num myPreference, num herPreference) {
+  _Restaurant call(
+      String name, Preference myPreference, Preference herPreference) {
     return _Restaurant(
       name,
       myPreference,
@@ -40,8 +41,8 @@ const $Restaurant = _$RestaurantTearOff();
 /// @nodoc
 mixin _$Restaurant {
   String get name => throw _privateConstructorUsedError;
-  num get myPreference => throw _privateConstructorUsedError;
-  num get herPreference => throw _privateConstructorUsedError;
+  Preference get myPreference => throw _privateConstructorUsedError;
+  Preference get herPreference => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -54,7 +55,10 @@ abstract class $RestaurantCopyWith<$Res> {
   factory $RestaurantCopyWith(
           Restaurant value, $Res Function(Restaurant) then) =
       _$RestaurantCopyWithImpl<$Res>;
-  $Res call({String name, num myPreference, num herPreference});
+  $Res call({String name, Preference myPreference, Preference herPreference});
+
+  $PreferenceCopyWith<$Res> get myPreference;
+  $PreferenceCopyWith<$Res> get herPreference;
 }
 
 /// @nodoc
@@ -79,12 +83,26 @@ class _$RestaurantCopyWithImpl<$Res> implements $RestaurantCopyWith<$Res> {
       myPreference: myPreference == freezed
           ? _value.myPreference
           : myPreference // ignore: cast_nullable_to_non_nullable
-              as num,
+              as Preference,
       herPreference: herPreference == freezed
           ? _value.herPreference
           : herPreference // ignore: cast_nullable_to_non_nullable
-              as num,
+              as Preference,
     ));
+  }
+
+  @override
+  $PreferenceCopyWith<$Res> get myPreference {
+    return $PreferenceCopyWith<$Res>(_value.myPreference, (value) {
+      return _then(_value.copyWith(myPreference: value));
+    });
+  }
+
+  @override
+  $PreferenceCopyWith<$Res> get herPreference {
+    return $PreferenceCopyWith<$Res>(_value.herPreference, (value) {
+      return _then(_value.copyWith(herPreference: value));
+    });
   }
 }
 
@@ -94,7 +112,12 @@ abstract class _$RestaurantCopyWith<$Res> implements $RestaurantCopyWith<$Res> {
           _Restaurant value, $Res Function(_Restaurant) then) =
       __$RestaurantCopyWithImpl<$Res>;
   @override
-  $Res call({String name, num myPreference, num herPreference});
+  $Res call({String name, Preference myPreference, Preference herPreference});
+
+  @override
+  $PreferenceCopyWith<$Res> get myPreference;
+  @override
+  $PreferenceCopyWith<$Res> get herPreference;
 }
 
 /// @nodoc
@@ -121,11 +144,11 @@ class __$RestaurantCopyWithImpl<$Res> extends _$RestaurantCopyWithImpl<$Res>
       myPreference == freezed
           ? _value.myPreference
           : myPreference // ignore: cast_nullable_to_non_nullable
-              as num,
+              as Preference,
       herPreference == freezed
           ? _value.herPreference
           : herPreference // ignore: cast_nullable_to_non_nullable
-              as num,
+              as Preference,
     ));
   }
 }
@@ -141,9 +164,9 @@ class _$_Restaurant implements _Restaurant {
   @override
   final String name;
   @override
-  final num myPreference;
+  final Preference myPreference;
   @override
-  final num herPreference;
+  final Preference herPreference;
 
   @override
   String toString() {
@@ -181,7 +204,8 @@ class _$_Restaurant implements _Restaurant {
 }
 
 abstract class _Restaurant implements Restaurant {
-  factory _Restaurant(String name, num myPreference, num herPreference) =
+  factory _Restaurant(
+          String name, Preference myPreference, Preference herPreference) =
       _$_Restaurant;
 
   factory _Restaurant.fromJson(Map<String, dynamic> json) =
@@ -190,9 +214,9 @@ abstract class _Restaurant implements Restaurant {
   @override
   String get name;
   @override
-  num get myPreference;
+  Preference get myPreference;
   @override
-  num get herPreference;
+  Preference get herPreference;
   @override
   @JsonKey(ignore: true)
   _$RestaurantCopyWith<_Restaurant> get copyWith =>

@@ -1,21 +1,18 @@
+import 'package:date_night/model/preference.dart';
 import 'package:date_night/model/restaurant.dart';
 import 'package:date_night/restaurant_list_notifier.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'mocks/mock_restaurant_repository.dart';
 
-import 'mocks/mock_restaurant_repository.dart';
-
-import 'mocks/mock_restaurant_repository.dart';
-
 void main() {
   test('only uniquely name restaurants will be included during construction',
       () {
-    var restaurantModel = Restaurant("name", 0, 0);
+    var restaurantModel = Restaurant("name", Preference.none(), Preference.none());
     final notifier = RestaurantListNotifier([
       restaurantModel,
-      Restaurant("name", 1, 1),
-      Restaurant("name", 2, 2),
+      Restaurant("name", Preference.like(), Preference.like()),
+      Restaurant("name", Preference.love(), Preference.love()),
     ], MockRestaurantRepository());
 
     expect(notifier.count, 1);
@@ -24,7 +21,7 @@ void main() {
 
   test('uniquely named restaurants will be added to the notifier', () {
     final notifier = RestaurantListNotifier([], MockRestaurantRepository());
-    final restaurantModel = Restaurant("one", 0, 0);
+    final restaurantModel = Restaurant("one", Preference.none(), Preference.none());
 
     notifier.add(restaurantModel);
     expect(notifier.count, 1);
@@ -33,13 +30,13 @@ void main() {
     expect(notifier.count, 1);
     expect(notifier[0], restaurantModel);
 
-    final modelWithDuplicateName = Restaurant("one", 1, 1);
+    final modelWithDuplicateName = Restaurant("one", Preference.like(), Preference.like());
     notifier.add(modelWithDuplicateName);
     expect(notifier.count, 1);
     expect(notifier[0], restaurantModel);
     expect(notifier[0] != modelWithDuplicateName, true);
 
-    final modelWithDifferentName = Restaurant("name", 2, 2);
+    final modelWithDifferentName = Restaurant("name", Preference.love(), Preference.love());
     notifier.add(modelWithDifferentName);
     expect(notifier.count, 2);
     expect(notifier[0], restaurantModel);
@@ -49,8 +46,8 @@ void main() {
   });
 
   test('only the item matching a given restaurants name will be removed', () {
-    var restaurantModel = Restaurant("one", 1, 1);
-    var restaurantModel2 = Restaurant("two", 1, 1);
+    var restaurantModel = Restaurant("one", Preference.like(), Preference.like());
+    var restaurantModel2 = Restaurant("two", Preference.like(), Preference.like());
     final notifier =
         RestaurantListNotifier([restaurantModel, restaurantModel2], MockRestaurantRepository());
 
@@ -72,8 +69,8 @@ void main() {
   });
 
   test('only an existing item will be updated when given new properties', () {
-    var restaurantModel = Restaurant("one", 1, 1);
-    var restaurantModel2 = Restaurant("two", 1, 1);
+    var restaurantModel = Restaurant("one", Preference.like(), Preference.like());
+    var restaurantModel2 = Restaurant("two", Preference.like(), Preference.like());
     final notifier =
         RestaurantListNotifier([restaurantModel, restaurantModel2], MockRestaurantRepository());
 
@@ -84,7 +81,7 @@ void main() {
     notifier.replace(modelWithNewName, modelWithNewName);
     expect(notifier[0], modelWithNewName);
 
-    var modelWithNewPreference = modelWithNewName.copyWith(myPreference: 3);
+    var modelWithNewPreference = modelWithNewName.copyWith(myPreference: Preference.favorite());
     notifier.replace(modelWithNewName, modelWithNewPreference);
     expect(notifier[0], modelWithNewPreference);
 
@@ -101,37 +98,37 @@ void main() {
       ++callCount;
     });
 
-    notifier.add(Restaurant("name", 0, 0));
+    notifier.add(Restaurant("name", Preference.none(), Preference.none()));
     expectedCallCount++;
     expect(callCount, expectedCallCount);
 
-    notifier.add(Restaurant("name", 0, 0));
+    notifier.add(Restaurant("name", Preference.none(), Preference.none()));
     expect(callCount, expectedCallCount);
 
-    notifier.remove(Restaurant("name", 0, 0));
+    notifier.remove(Restaurant("name", Preference.none(), Preference.none()));
     expectedCallCount++;
     expect(callCount, expectedCallCount);
 
-    notifier.remove(Restaurant("name", 0, 0));
+    notifier.remove(Restaurant("name", Preference.none(), Preference.none()));
     expect(callCount, expectedCallCount);
 
     notifier.update(notifier.value);
     expectedCallCount++;
     expect(callCount, expectedCallCount);
 
-    notifier.add(Restaurant("name", 0, 0));
+    notifier.add(Restaurant("name", Preference.none(), Preference.none()));
     expectedCallCount++;
-    notifier.replace(Restaurant("name", 0, 0), Restaurant("hello", 0, 0));
+    notifier.replace(Restaurant("name", Preference.none(), Preference.none()), Restaurant("hello", Preference.none(), Preference.none()));
     expectedCallCount++;
     expect(callCount, expectedCallCount);
 
-    notifier.replace(Restaurant("name", 0, 0), Restaurant("hello", 0, 0));
+    notifier.replace(Restaurant("name", Preference.none(), Preference.none()), Restaurant("hello", Preference.none(), Preference.none()));
     expect(callCount, expectedCallCount);
 
-    notifier.replace(Restaurant("hello", 0, 0), Restaurant("hello", 0, 0));
+    notifier.replace(Restaurant("hello", Preference.none(), Preference.none()), Restaurant("hello", Preference.none(), Preference.none()));
     expect(callCount, expectedCallCount);
 
-    notifier.replace(Restaurant("hello", 0, 0), Restaurant("hello", 1, 0));
+    notifier.replace(Restaurant("hello", Preference.none(), Preference.none()), Restaurant("hello", Preference.like(), Preference.none()));
     expectedCallCount++;
     expect(callCount, expectedCallCount);
 
@@ -143,16 +140,16 @@ void main() {
     () {
       final notifier = RestaurantListNotifier([], MockRestaurantRepository());
       final restaurants = [
-        Restaurant("panda", 1, 1),
-        Restaurant("mc donald's", 1, 0),
-        Restaurant("burger king", 0, 1),
+        Restaurant("panda", Preference.like(), Preference.like()),
+        Restaurant("mc donald's", Preference.like(), Preference.none()),
+        Restaurant("burger king", Preference.none(), Preference.like()),
       ];
       for (var restaurant in restaurants) {
         notifier.add(restaurant);
       }
 
       final myPreferred = notifier.myPreferredRestaurants;
-      expect(myPreferred.every((element) => element.myPreference > 0), true);
+      expect(myPreferred.every((element) => element.myPreference.weight > 0), true);
 
       for (var restaurant in myPreferred) {
         expect(restaurants.contains(restaurant), true);
@@ -164,16 +161,16 @@ void main() {
     () {
       final notifier = RestaurantListNotifier([], MockRestaurantRepository());
       final restaurants = [
-        Restaurant("panda", 1, 1),
-        Restaurant("mc donald's", 1, 0),
-        Restaurant("burger king", 0, 1),
+        Restaurant("panda", Preference.like(), Preference.like()),
+        Restaurant("mc donald's", Preference.like(), Preference.none()),
+        Restaurant("burger king", Preference.none(), Preference.like()),
       ];
       for (var restaurant in restaurants) {
         notifier.add(restaurant);
       }
 
       final herPreferred = notifier.herPreferredRestaurants;
-      expect(herPreferred.every((element) => element.herPreference > 0), true);
+      expect(herPreferred.every((element) => element.herPreference.weight > 0), true);
 
       for (var restaurant in herPreferred) {
         expect(restaurants.contains(restaurant), true);

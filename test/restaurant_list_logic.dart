@@ -1,4 +1,14 @@
 import 'package:date_night/commands/restaurant_command.dart';
+import 'package:date_night/model/preference.dart';
+import 'package:date_night/model/preference.dart';
+import 'package:date_night/model/preference.dart';
+import 'package:date_night/model/preference.dart';
+import 'package:date_night/model/preference.dart';
+import 'package:date_night/model/preference.dart';
+import 'package:date_night/model/preference.dart';
+import 'package:date_night/model/preference.dart';
+import 'package:date_night/model/preference.dart';
+import 'package:date_night/model/preference.dart';
 import 'package:date_night/model/restaurant.dart';
 import 'package:date_night/restaurant_list_logic.dart';
 import 'package:date_night/restaurant_list_notifier.dart';
@@ -19,7 +29,7 @@ void main() {
     'valid commands will update the restaurant list and be added to the undo stack',
     () async {
       final instance = await initialize();
-      final restaurant = Restaurant("panda", 1, 0);
+      final restaurant = Restaurant("panda", Preference.like(), Preference.none());
       final add = RestaurantCommand.add(restaurant);
 
       instance.takeAction(add);
@@ -28,7 +38,7 @@ void main() {
       expect(instance.undoStack.top(), add,
           reason: "add command was not added");
 
-      final updatedRestaurant = Restaurant("panda", 1, 1);
+      final updatedRestaurant = Restaurant("panda", Preference.like(), Preference.like());
       final replace = RestaurantCommand.replace(restaurant, updatedRestaurant);
       instance.takeAction(replace);
       expect(instance.restaurantList[0], updatedRestaurant,
@@ -49,9 +59,9 @@ void main() {
     () async {
       final instance = await initialize();
       final restaurants = [
-        Restaurant("panda", 1, 1),
-        Restaurant("mcdonalds", 1, 0),
-        Restaurant("burger king", 0, 1),
+        Restaurant("panda", Preference.like(), Preference.like()),
+        Restaurant("mcdonalds", Preference.like(), Preference.none()),
+        Restaurant("burger king", Preference.none(), Preference.like()),
       ];
 
       for (var restaurant in restaurants) {
@@ -59,7 +69,7 @@ void main() {
       }
 
       final myPick = instance.myRandomPick;
-      expect(myPick?.myPreference, greaterThan(0));
+      expect(myPick?.myPreference.weight, greaterThan(0));
       expect(restaurants.contains(myPick), true);
     },
   );
@@ -68,9 +78,9 @@ void main() {
     () async {
       final instance = await initialize();
       final restaurants = [
-        Restaurant("panda", 1, 1),
-        Restaurant("mcdonalds", 1, 0),
-        Restaurant("burger king", 0, 1),
+        Restaurant("panda", Preference.like(), Preference.like()),
+        Restaurant("mcdonalds", Preference.like(), Preference.none()),
+        Restaurant("burger king", Preference.none(), Preference.like()),
       ];
 
       for (var restaurant in restaurants) {
@@ -78,7 +88,7 @@ void main() {
       }
 
       final herPick = instance.herRandomPick;
-      expect(herPick?.herPreference, greaterThan(0));
+      expect(herPick?.herPreference.weight, greaterThan(0));
       expect(restaurants.contains(herPick), true);
     },
   );

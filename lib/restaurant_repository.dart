@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:date_night/model/restaurant.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -49,22 +51,29 @@ class RestaurantSharedPrefRepository implements RestaurantRepository {
 
   @override
   Future<List<Restaurant>> getAll() async {
-    final keys = _dataBase.getKeys();
-    final list = <Restaurant>[];
+    try {
+      final keys = _dataBase.getKeys();
+      final list = <Restaurant>[];
 
-    for (var key in keys) {
-      var jsonString = _dataBase.getString(key);
+      for (var key in keys) {
+        var jsonString = _dataBase.getString(key);
 
-      if (jsonString == null) {
-        continue;
+        if (jsonString == null) {
+          continue;
+        }
+
+        var jsonMap = json.decode(jsonString);
+        var restaurant = Restaurant.fromJson(jsonMap);
+        list.add(restaurant);
       }
 
-      var jsonMap = json.decode(jsonString);
-      var restaurant = Restaurant.fromJson(jsonMap);
-      list.add(restaurant);
+      return list;
+    } catch (e) {
+      log(e.toString());
+      log("clearing database due to data error");
+      _dataBase.clear();
+      return [];
     }
-
-    return list;
   }
 
   @override

@@ -84,13 +84,13 @@ class RestaurantListNotifier extends ValueNotifier<List<Restaurant>> {
 
   List<Restaurant> get myPreferredRestaurants {
     return value
-        .where((element) => element.myPreference > 0)
+        .where((element) => element.myPreference.weight > 0)
         .toList(growable: false);
   }
 
   List<Restaurant> get herPreferredRestaurants {
     return value
-        .where((element) => element.herPreference > 0)
+        .where((element) => element.herPreference.weight > 0)
         .toList(growable: false);
   }
 }
