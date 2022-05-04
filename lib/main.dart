@@ -30,67 +30,98 @@ MaterialColor createMaterialColor(Color color) {
   }
   return MaterialColor(color.value, swatch);
 }
+
 void main() async {
   await setup();
   runApp(const App());
 }
 
 class App extends HookWidget {
-
   const App({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     var logic = useGet<RestaurantListLogic>();
     var notifier = useListenable(logic.restaurantList);
+    var primarySwatch =
+        createMaterialColor(const Color.fromRGBO(41, 216, 111, 1));
 
-    var primarySwatch = createMaterialColor(Color.fromRGBO(41, 216, 111, 1));
     return MaterialApp(
-        title: 'Flutter Demo',
-        theme: ThemeData(primarySwatch: primarySwatch),
-        home: Scaffold(
-          floatingActionButtonLocation:
-              FloatingActionButtonLocation.centerDocked,
-          appBar: AppBar(
-            title: const Text('Date Night'),
-          ),
-          bottomNavigationBar: BottomAppBar(
-            shape: const CircularNotchedRectangle(),
-            color: primarySwatch,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  MyPickButton(logic: logic),
-                  HerPickButton(logic: logic),
-                ],
-              ),
+      title: 'Flutter Demo',
+      theme: ThemeData(primarySwatch: primarySwatch),
+      home: Scaffold(
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        appBar: AppBar(
+          title: const Text('Date Night'),
+        ),
+        bottomNavigationBar: BottomAppBar(
+          shape: const CircularNotchedRectangle(),
+          color: primarySwatch,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                MyPickButton(logic: logic),
+                HerPickButton(logic: logic),
+              ],
             ),
           ),
-          body: Center(
-            child: ListView.builder(
-              itemCount: notifier.count,
-              itemBuilder: (context, index) {
-                final restaurant = notifier[index];
+        ),
+        body: RestaurantListWidget(notifier: notifier),
+        floatingActionButton: NewRestaurantButton(logic: logic),
+      ),
+    );
+  }
+}
 
-                return RestaurantWidget(restaurant: restaurant);
-              },
-            ),
-            // child: GridView.builder(
-            //   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-            //     maxCrossAxisExtent: 160,
-            //   ),
-            //   padding: const EdgeInsets.all(16),
-            //   itemCount: notifier.count,
-            //   itemBuilder: (context, index) {
-            //     final restaurant = notifier[index];
-            //     return RestaurantWidget(restaurant: restaurant);
-            //   },
-            // ),
-          ),
-          floatingActionButton: NewRestaurantButton(logic: logic),
-        ));
+class RestaurantListWidget extends HookWidget {
+  const RestaurantListWidget({
+    Key? key,
+    required this.notifier,
+  }) : super(key: key);
+
+  final RestaurantListNotifier notifier;
+  final homeWidgetChannel = const MethodChannel('app.channel.home_widget');
+
+  @override
+  Widget build(BuildContext context) {
+    var logic = useGet<RestaurantListLogic>();
+    var notifier = useListenable(logic.restaurantList);
+
+    useEffect(() {
+      print("effect");
+      homeWidgetChannel.setMethodCallHandler((call) async {
+        print("method call handler");
+        print(call.method);
+        print(call.arguments);
+        switch (call.method) {
+          case "getPick":
+            if (call.arguments != null) {
+              await showDialog(
+                context: context,
+                builder: (context) {
+                  final pick = call.arguments == "hers"
+                      ? logic.herRandomPick
+                      : logic.myRandomPick;
+                  return PickDialog(pick);
+                },
+              );
+            }
+        }
+      });
+      return null;
+    });
+    return Center(
+      child: ListView.builder(
+        itemCount: notifier.count,
+        itemBuilder: (context, index) {
+          final restaurant = notifier[index];
+
+          return RestaurantWidget(restaurant: restaurant);
+        },
+      ),
+    );
   }
 }
 
@@ -321,7 +352,8 @@ class RestaurantDialog extends HookWidget {
                         defaultValue: state.value.herPreference,
                         onChanged: (value) {
                           if (value == null) return;
-                          state.value = state.value.copyWith(herPreference: value);
+                          state.value =
+                              state.value.copyWith(herPreference: value);
                         },
                       ),
                     ),
